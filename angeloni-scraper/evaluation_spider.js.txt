@@ -1,0 +1,56 @@
+const axios = require('axios');
+const cheerio = require('cheerio');
+
+/**
+ * Scrapes a given URL and loads the HTML content into Cheerio.
+ * Includes basic error handling from the original script.
+ *
+ * @param {object} input - An object containing the input parameters.
+ * @param {string} input.url - The URL to scrape.
+ */
+async function run(input) {
+  // Check if the input object and URL are provided
+  if (!input || !input.url) {
+    console.error('Error: Input object with URL is required.');
+    return; // Exit the function if input is invalid
+  }
+
+  const url = input.url;
+  console.log(`Attempting to scrape: ${url}`); // Keep this line for clarity
+
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+      }
+    });
+
+    const $ = cheerio.load(response.data);
+
+    // You can add the logic to process products here if needed
+    // This is where you would use Cheerio ($) to extract data,
+    // following the challenge requirements for output format (JSON/console).
+
+    console.log('Content fetched and loaded into Cheerio. Proceed with scraping logic.');
+
+    // Example: Log the page title (you'll replace this with actual scraping)
+    const pageTitle = $('title').text();
+    console.log(`Page Title: ${pageTitle}`);
+
+
+  } catch (error) {
+    // Simple error handling as in the original script
+    console.error('Error during scraping:', error.message);
+  }
+}
+
+// Example of how to call the run function with the specified URL
+// You would typically modify this part or make the script accept
+// input based on the challenge's volume control requirement (number of products/pages).
+// For this specific request, we are hardcoding the example URL here.
+const scrapingInput = {
+  url: 'https://www.angeloni.com.br/super/bebidas/refrigerante'
+};
+
+// Execute the run function with the example input
+run(scrapingInput);

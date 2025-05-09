@@ -1,0 +1,65 @@
+const axios = require('axios');
+const cheerio = require('cheerio');
+
+
+const args = process.argv.slice(2);
+const categoryUrl = args[0];  
+const maxProducts = parseInt(args[1]) || 10; 
+
+
+async function scrapeCategory(url, maxProducts) {
+  let products = [];
+  let page = 1;
+
+  
+  while (products.length < maxProducts) {
+    try {
+      const pagedUrl = `${url}?page=${page}`;
+      console.log(`Visitando: ${pagedUrl}`);
+
+      const response = await axios.get(pagedUrl);
+      const $ = cheerio.load(response.data);
+
+      const categoryName = $('h1').first().text().trim(); 
+      const productElements = $('.product-box'); 
+
+      if (productElements.length === 0) {
+        console.log('No hay más productos/ la página no existe.');
+        break;
+      }
+
+      productElements.each((i, el) => {
+        if (products.length >= maxProducts) return;
+
+        const name = $(el).find('.product-title').text().trim();
+        const price = $(el).find('.product-price').text().trim();
+        const productUrl = $(el).find('a').attr('href');
+        const imageUrl = $(el).find('img').attr('src');
+
+        products.push({
+          name,
+          price,
+          url: productUrl ? `https://www.extramercado.com.br${productUrl}` : null,
+          image: imageUrl,
+          category: categoryName,
+        });
+      });
+
+      page++; 
+
+    } catch (err) {
+      console.error('Error al obtener la página:', err.message);
+      break;
+    }
+  }
+
+  console.log(`Se encontraron ${products.length} productos:\n`);
+  console.log(products);
+}
+
+
+if (!categoryUrl) {
+  console.log('Uso: node scraper.js <URL_CATEGORÍA> <CANTIDAD_PRODUCTOS>');
+} else {
+  scrapeCategory(categoryUrl, maxProducts);
+}
